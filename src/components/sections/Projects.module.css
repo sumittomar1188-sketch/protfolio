@@ -1,0 +1,325 @@
+.decks {
+  /* deck width before the phone zoom; DeckRow reads it to fit the row */
+  --deck-w: 184px;
+  list-style: none;
+  margin: 0;
+  display: flex;
+  gap: 26px;
+  overflow-x: auto;
+  padding: 14px 4px 30px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.decks > li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+/* phones: the row runs edge to edge like the wheel strips, so the next deck peeks in at the screen edge */
+@media (max-width: 700px) {
+  .decks {
+    margin-inline: calc(-1 * var(--gutter)) calc(-1 * var(--content-right));
+    padding-inline: calc(var(--gutter) + 4px) var(--content-right);
+    scroll-padding-inline: calc(var(--gutter) + 4px);
+    /* swipe only, like the wheel strips; desktop keeps its thin scrollbar for mouse users */
+    scrollbar-width: none;
+  }
+  .decks::-webkit-scrollbar {
+    display: none;
+  }
+  /* scaled by DeckRow so a partial deck always shows at the edge */
+  .decks > li {
+    zoom: var(--deck-zoom, 1);
+  }
+}
+
+.deck {
+  position: relative;
+  width: var(--deck-w);
+  height: 560px;
+  perspective: 1400px;
+}
+/* project links: a row at the foot of the back face; buttons share it, so a lone CODE spans it */
+.back > .links {
+  display: flex;
+  gap: 6px;
+  margin: 10px 6px 0;
+}
+.links a {
+  flex: 1;
+  text-align: center;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--pink);
+  border: 2px solid var(--ink);
+  border-radius: 99px;
+  padding: 7px 8px;
+  white-space: nowrap;
+}
+.links a:hover,
+.links a:focus-visible {
+  background: var(--pink);
+}
+.flip {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.inner {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+/* hover tilt; DeckRow plays the same pose on entry via data-nudge */
+.flip:hover .inner,
+.deck[data-nudge] .inner {
+  transform: rotate(-3deg) translateY(-8px);
+}
+/* the deck in the row is lifted out while it's open (Deck flies a copy to the spotlight) */
+.deck[data-lifted] .flip {
+  visibility: hidden;
+}
+
+/* ---------- spotlight: the opened deck, centred, enlarged and flipped to its back ---------- */
+.spotlight {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.spotlight::backdrop {
+  background: rgb(18 18 18 / 0.55);
+  backdrop-filter: blur(3px);
+  animation: spot-fade 0.35s ease-out;
+  transition: opacity 0.45s;
+}
+.spotlight[data-closing]::backdrop {
+  opacity: 0;
+}
+@keyframes spot-fade {
+  from {
+    opacity: 0;
+  }
+}
+/* deck-sized and centred; Deck animates its transform from the row position to scale(fit) */
+.spot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 184px;
+  height: 560px;
+  margin: -280px 0 0 -92px;
+  perspective: 1400px;
+}
+.spot[data-flipped] .inner {
+  transform: rotateY(180deg);
+}
+.spotClose {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  font: 600 12px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.spotlight[data-closing] .spotClose {
+  opacity: 0;
+}
+:global(html[data-modal]) {
+  overflow: hidden;
+}
+.face {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: 92px / 80px;
+  border: 3px solid var(--ink);
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+/* ---------- front: cover art ---------- */
+/* title up top, the project's illustration (DeckArt), then the tag on a solid band. Paint comes from the
+   project's colors (--deck-*), set inline by Deck. */
+.front {
+  background: var(--deck-bg);
+}
+/* the title sits centred in the space between the top bolts and the art, whatever its size or line count */
+.title {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 84px;
+  height: 106px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-display);
+  line-height: 0.9;
+  color: var(--deck-title);
+  text-shadow: 2px 2px 0 var(--deck-shadow);
+}
+.title > span {
+  display: block;
+  white-space: nowrap;
+}
+.art {
+  position: absolute;
+  left: 18px;
+  top: 198px;
+  width: calc(100% - 36px);
+  height: 178px;
+  overflow: visible;
+}
+/* the same pill as the hero's "open to work" */
+.live {
+  position: absolute;
+  top: 382px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  background: var(--ink);
+  color: var(--pink);
+  border-radius: 99px;
+  padding: 6px 9px;
+}
+.live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pink);
+}
+.band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 414px;
+  height: 64px;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  padding: 0 20px;
+  text-align: center;
+  background: var(--deck-band);
+  color: var(--deck-band-text);
+  border-block: 3px solid var(--ink);
+}
+.tag {
+  font: 600 14.5px/1.25 var(--font-body);
+  text-wrap: balance;
+  font-stretch: 95%;
+}
+.bolts {
+  position: absolute;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  z-index: 3;
+  background: radial-gradient(circle, var(--bolt, var(--ink)) 3px, transparent 3.6px) 0 0 / 11px 11px;
+}
+.top {
+  top: 58px;
+}
+.bottom {
+  bottom: 50px;
+}
+
+.back {
+  transform: rotateY(180deg);
+  color: #f2f2ee;
+  padding: 64px 16px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* grip texture kept faint: a surface detail, not something to read through */
+  background:
+    radial-gradient(rgb(255 255 255 / 0.04) 0.7px, transparent 1px) 0 0 / 3px 3px,
+    var(--grip);
+}
+/* title smaller than the result, so the eye goes project -> story -> result */
+.backTitle {
+  display: block;
+  font: 400 18px/1 var(--font-display);
+  color: var(--white);
+}
+.category {
+  display: block;
+  margin-top: 5px;
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(242 242 238 / 0.55);
+}
+.k {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--pink);
+  text-transform: uppercase;
+}
+.back > span {
+  display: block;
+}
+.k {
+  display: block;
+}
+.txt {
+  display: block;
+  margin-top: 3px;
+  font: 400 12px/1.42 var(--font-body);
+}
+/* the result is the focal point: a little more room above it, big acid headline, short line under */
+.back > .result {
+  margin-top: 4px;
+}
+.num {
+  display: block;
+  font: 400 28px/1 var(--font-display);
+  color: var(--pink);
+  font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+  margin-top: 4px;
+}
+.back > .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+}
+.chips span {
+  font: 600 9px/1 var(--font-mono);
+  border: 1px solid rgb(242 242 238 / 0.7);
+  padding: 3px 6px;
+  border-radius: 99px;
+}
