@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generates the rider's SVG art: src/features/ride/engine/riderArt.ts. Run: python3 scripts/rider/build.py
 
-The rider is drawn from Raghav's character sheet as layered parts. Every part is authored in its bone's local frame
+The rider is drawn from sumit's character sheet as layered parts. Every part is authored in its bone's local frame
 (origin = the joint it rotates around); skaterRig.ts poses the bones by setting each part's transform.
 Units: 100 = 1 rig unit, y down, +x = the direction he faces. Colours are classes (.ac, .bl, .pk...) mapped to
 CSS variables in RideLayer.module.css, so the palette stays in config/theme.ts.
